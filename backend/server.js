@@ -1,5 +1,6 @@
 import express from 'express';
 import cors from "cors";
+import cookieParser from 'cookie-parser';
 import dotenv from 'dotenv';
 import healthRoutes from './routes/healthRoutes.js'
 import notFound from './middleware/notFound.js'
@@ -9,7 +10,7 @@ dotenv.config();
 const app=express();
 const PORT=process.env.PORT;
 app.use(express.json());
-
+app.use(cookieParser(process.env.COOKIE_SECRET));
 
 app.use('/api/health',healthRoutes);
 app.use('/api/auth',authRoutes);
