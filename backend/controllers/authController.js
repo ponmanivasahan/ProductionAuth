@@ -1,11 +1,25 @@
 import authService from '../services/authService.js';
 import apiResponse from '../utils/apiResponse.js';
 import {setTokenCookies,clearTokenCookies} from '../utils/cookies.js';
+import emailService from '../utils/email.js';
 class AuthController{
     async register(req,res,next){
         try{
             const {email,password}=req.body || {};
             const user=await authService.register(email,password);
+            let verificationEmailSent=false;
+
+            if(!user.is_email_verified){
+                try{
+                    const verificationToken=await authService.createEmailVerificationToken(user.id);
+                    await emailService.sendVerificationEmail(user.email,verificationToken);
+                    verificationEmailSent=true;
+                }
+                catch(emailError){
+                    console.error('Failed to send verification email during register:',emailError.message);
+                }
+            }
+
             //generate tokens
             const tokens=authService.generateTokens({...user,roles:['user']});
 
@@ -22,7 +36,7 @@ class AuthController{
             setTokenCookies(res,tokens.accessToken,tokens.refreshToken);
 
             return apiResponse.success(
-                res,{ user,accessToken:tokens.accessToken   
+                res,{ user,accessToken:tokens.accessToken,verificationEmailSent
                 },
                 'User registered successfully',
                 201
@@ -40,6 +54,19 @@ class AuthController{
         try{
             const {email,password}=req.body;
             const user=await authService.login(email,password);
+            let verificationEmailSent=false;
+
+            if(!user.is_email_verified){
+                try{
+                    const verificationToken=await authService.createEmailVerificationToken(user.id);
+                    await emailService.sendVerificationEmail(user.email,verificationToken);
+                    verificationEmailSent=true;
+                }
+                catch(emailError){
+                    console.error('Failed to send verification email during login:',emailError.message);
+                }
+            }
+
             const tokens=authService.generateTokens(user);
             await authService.saveRefreshToken(user.id,tokens.refreshToken);
             await authService.createSession(user.id,{
@@ -49,7 +76,7 @@ class AuthController{
             })
 
             setTokenCookies(res,tokens.accessToken,tokens.refreshToken);
-            return apiResponse.success(res,{user,accessToken:tokens.accessToken},'Login Successful');
+            return apiResponse.success(res,{user,accessToken:tokens.accessToken,verificationEmailSent},'Login Successful');
         }
         catch(error){
             if(error.message==='Invalid credentials'){
@@ -130,6 +157,202 @@ class AuthController{
         }
         catch(error){
             next(error);
+        }
+    }
+
+    async forgotPassword(req,res,next){
+        try{
+           const {email}=req.body;
+
+           const resetToken=await authService.createPasswordResetToken(email);
+
+           if(resetToken){
+            await emailService.sendPasswordResetEmail(email,resetToken);
+           }
+           return apiResponse.success(res,null,'If your email is registered, you will receive a password reset link');
+        }
+        catch(error){
+             next(error);
+        }
+    }
+
+    async resetPassword(req,res,next){
+        try{
+            const {token,newPassword}=req.body;
+            const result=await authService.resetPassword(token,newPassword);
+
+            return apiResponse.success(res,{email:result.email},'Password reset successful. You can now login with your new password.');
+        }
+        catch (error){
+            if(error.message==='Invalid or expired token'){
+                return apiResponse.error(res,error.message,400);
+            }
+            next(error);
+        }
+    }
+
+    async resetPasswordFromLink(req,res,next){
+        try{
+            const {token=''}=req.query;
+
+            if(!token){
+                return res.status(400).send(`
+                    <!doctype html>
+                    <html>
+                    <head><title>Password Reset</title></head>
+                    <body style="font-family:Arial,sans-serif;padding:24px;">
+                        <h2>Invalid reset link</h2>
+                        <p>This reset link is missing a token.</p>
+                    </body>
+                    </html>
+                `);
+            }
+
+            return res.status(200).send(`
+                <!doctype html>
+                <html>
+                <head>
+                    <title>Reset Password</title>
+                    <meta name="viewport" content="width=device-width, initial-scale=1" />
+                </head>
+                <body style="font-family:Arial,sans-serif;padding:24px;max-width:480px;margin:0 auto;">
+                    <h2>Reset your password</h2>
+                    <p>Enter your new password below.</p>
+                    <form id="resetForm">
+                        <input id="newPassword" type="password" placeholder="New password" style="width:100%;padding:10px;margin:12px 0;border:1px solid #ccc;border-radius:6px;" required minlength="6" />
+                        <button type="submit" style="background:#4CAF50;color:#fff;border:none;padding:10px 14px;border-radius:6px;cursor:pointer;">Reset Password</button>
+                    </form>
+                    <p id="status" style="margin-top:12px;"></p>
+                    <script>
+                        (function () {
+                            const form = document.getElementById('resetForm');
+                            const status = document.getElementById('status');
+                            const token = ${JSON.stringify(token)};
+
+                            form.addEventListener('submit', async function (event) {
+                                event.preventDefault();
+                                const newPassword = document.getElementById('newPassword').value;
+
+                                status.textContent = 'Submitting...';
+                                try {
+                                    const response = await fetch('/api/auth/reset-password', {
+                                        method: 'POST',
+                                        headers: { 'Content-Type': 'application/json' },
+                                        body: JSON.stringify({ token, newPassword })
+                                    });
+
+                                    const body = await response.json();
+                                    if (!response.ok) {
+                                        throw new Error(body.message || 'Reset failed');
+                                    }
+
+                                    status.style.color = '#2e7d32';
+                                    status.textContent = 'Password reset successful. You can now log in.';
+                                } catch (error) {
+                                    status.style.color = '#c62828';
+                                    status.textContent = error.message || 'Reset failed';
+                                }
+                            });
+                        })();
+                    </script>
+                </body>
+                </html>
+            `);
+        }
+        catch(error){
+            next(error);
+        }
+    }
+
+    async sendVerificationEmail(req,res,next){
+        try{
+            const {email}=req.body;
+            const result=await authService.resendVerificationEmail(email);
+
+            if(result){
+                                await emailService.sendVerificationEmail(email,result.token);
+            }
+            return apiResponse.success(res,null,'If your email is registered and not verified, a verification link will be sent');
+        }
+        catch(error){
+           if(error.message==='Email already verified'){
+            return apiResponse.error(res,error.message,400);
+           }
+           next (error);
+        }
+    }
+
+    async verifyEmail(req,res,next){
+        try{
+           const {token}=req.body;
+           const result=await authService.verifyEmail(token);
+
+           await emailService.sendWelcomeEmail(result.email);
+
+           return apiResponse.success(res,{email:result.email},'Email verified successfully');
+        }
+        catch(error){
+           if(error.message==='Invalid or expired token'){
+             return apiResponse.error(res,error.message,400);
+           }
+           next(error);
+        }
+    }
+
+    async verifyEmailFromLink(req,res,next){
+        try{
+            const {token}=req.query;
+
+            if(!token){
+                return res.status(400).send(`
+                    <!doctype html>
+                    <html>
+                    <head><title>Email Verification</title></head>
+                    <body style="font-family:Arial,sans-serif;padding:24px;">
+                        <h2>Invalid verification link</h2>
+                        <p>This verification link is missing a token.</p>
+                    </body>
+                    </html>
+                `);
+            }
+
+            const result=await authService.verifyEmail(token);
+            await emailService.sendWelcomeEmail(result.email);
+
+            return res.status(200).send(`
+                <!doctype html>
+                <html>
+                <head><title>Email Verification</title></head>
+                <body style="font-family:Arial,sans-serif;padding:24px;">
+                    <h2>Email verified successfully</h2>
+                    <p>Your email is now verified. You can return to the app and continue.</p>
+                </body>
+                </html>
+            `);
+        }
+        catch(error){
+            if(error.message==='Invalid or expired token'){
+                return res.status(400).send(`
+                    <!doctype html>
+                    <html>
+                    <head><title>Email Verification</title></head>
+                    <body style="font-family:Arial,sans-serif;padding:24px;">
+                        <h2>Verification failed</h2>
+                        <p>This link is invalid or has expired.</p>
+                    </body>
+                    </html>
+                `);
+            }
+            next(error);
+        }
+    }
+
+    async checkVerificationStatus(req,res,next){
+        try{
+            return apiResponse.success(res,{isVerified:req.user.is_email_verified},'Verification status fetched');
+        }
+        catch(error){
+           next(error);
         }
     }
 }

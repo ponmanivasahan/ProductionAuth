@@ -3,7 +3,7 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import authConfig from '../config/auth.js'
 import generateUUID from '../utils/generateToken.js';
-
+import crypto from 'crypto';
 class AuthService{
     async register(email,password){
         const connection=await pool.getConnection();
@@ -256,6 +256,159 @@ class AuthService{
             [true]
         )
         return result.affectedRows;
+    }
+
+    generateRandomToken(){
+        return crypto.randomBytes(32).toString('hex');
+    }
+
+    async createPasswordResetToken(email){
+        const [users]=await pool.execute(
+            'Select id from users where email=?',
+            [email]
+        );
+
+        if(users.length===0){
+            return null;
+        }
+        const userId=users[0].id;
+        const token=this.generateRandomToken();
+        const tokenId=generateUUID();
+
+        const tokenHash=crypto.createHash('sha256').update(token).digest('hex');
+
+        const expiresAt=new Date();
+        expiresAt.setHours(expiresAt.getHours()+1);
+
+        //i am deleting the exisitng tokens here for the this current user
+        await pool.execute('Delete from password_reset_tokens where user_id=?',[userId]);
+
+        //creating new token here
+        await pool.execute(
+            `Insert into password_reset_tokens(id,user_id,token,expires_at) values(?,?,?,?)`,
+            [tokenId,userId,tokenHash,expiresAt]
+        );
+        return token;
+    }
+
+    async verifyPasswordResetToken(token){
+        const tokenHash=crypto.createHash('sha256').update(token).digest('hex');
+        const [tokens]=await pool.execute(`Select prt.*,u.email from password_reset_tokens prt
+            join users u on prt.user_id=u.id where prt.token=? and prt.expires_at>NOW()`,[tokenHash]);
+
+            if(tokens.length===0){
+                return null;
+            }
+            return tokens[0];
+    }
+
+    async resetPassword(token,newPassword){
+        const connection=await pool.getConnection();
+
+        try{
+            await connection.beginTransaction();
+            const tokenData=await this.verifyPasswordResetToken(token);
+            if(!tokenData){
+                throw new Error('Invalid or expired token');
+            }
+
+            const saltRounds=parseInt(process.env.BCRYPT_ROUNDS);
+            const passwordHash=await bcrypt.hash(newPassword,saltRounds);
+
+            await connection.execute('Update users set password_hash=?, updated_at=NOW() where id=?',[passwordHash,tokenData.user_id]);
+            await connection.execute('Delete from password_reset_tokens where id=?',[tokenData.id]);
+            
+            await this.revokeAllUserTokens(tokenData.user_id);
+
+            await connection.commit();
+            return {userId:tokenData.user_id,email:tokenData.email};
+        }
+        catch(error){
+            await connection.rollback();
+            throw error;
+        }
+        finally{
+            connection.release();
+        }
+    }
+
+    async createEmailVerificationToken(userId){
+        const token=this.generateRandomToken();
+        const tokenId=generateUUID();
+        const tokenHash=crypto.createHash('sha256').update(token).digest('hex');
+
+        const expiresAt=new Date();
+        expiresAt.setHours(expiresAt.getHours()+24);
+        await pool.execute('Delete from email_verification_tokens where user_id=?',[userId]);
+
+        await pool.execute(`Insert into email_verification_tokens(id,user_id,token,expires_at)values(?,?,?,?)`,[tokenId,userId,tokenHash,expiresAt]);
+
+        return token;
+    }
+
+    async verifyEmail(token){
+        const tokenHash=crypto.createHash('sha256').update(token).digest('hex');
+
+        const connection=await pool.getConnection();
+
+        try{
+            await connection.beginTransaction();
+            const [tokens]=await connection.execute(
+                `select evt.*,u.email from email_verification_tokens evt join users u on evt.user_id=u.id where evt.token=? and evt.expires_at>NOW()`,[tokenHash]
+            );
+
+            if(tokens.length===0){
+                throw new Error('Invalid or expired token');
+            }
+            const tokenData=tokens[0];
+            await connection.execute('Update users set is_email_verified=?,updated_at=NOW() where id=?',[true,tokenData.user_id]);
+
+            await connection.execute(
+                'Delete from email_verification_tokens where id=?',[tokenData.id]
+            );
+
+            await connection.commit();
+
+            return {userId:tokenData.user_id,email:tokenData.email};
+        }
+        catch(error){
+           await connection.rollback();
+           throw error;
+        }
+        finally{
+            connection.release();
+        }
+    }
+
+    async resendVerificationEmail(email){
+        const [users]=await pool.execute(
+            'Select id ,is_email_verified from users where email=?',[email]
+        );
+
+        if(users.length===0){
+            return null;
+        }
+        const user=users[0];
+        if(user.is_email_verified){
+            throw new Error('Email already verified');
+        }
+
+        const token=await this.createEmailVerificationToken(user.id);
+        return {userId:user.id,token};
+    }
+
+    async clearExpiredTokens(){
+        const [resetResult]=await pool.execute(
+            'Delete from password_reset_tokens where expires_at<NOW()'
+        )
+
+        const [verifyResult]=await pool.execute(
+            'Delete from email_verification_tokens where expires_at<NOW()'
+        );
+        return{
+            passwordReset:resetResult.affectedRows,
+            emailVerification:verifyResult.affectedRows
+        };
     }
 }
 
