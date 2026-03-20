@@ -73,3 +73,79 @@ create table refresh_tokens(
 )
 
 create index idx_refresh_user on refresh_tokens(user_id);
+
+create table permissions(
+    id int auto_increment primary key,
+    name varchar(100) unique not null,
+    resource varchar(50) not null,
+    action varchar(50) not null,
+    description text,
+    created_at timestamp default current_timestamp
+);
+
+create table role_permissions(
+    role_id int,
+    permission_id int,
+    created_at timestamp default current_timestamp,
+    primary key(role_id,permission_id),
+    foreign key(role_id) references roles(id) on delete cascade,
+    foreign key (permission_id) references permissions(id) on delete cascade
+);
+
+
+INSERT INTO permissions (name, resource, action, description) VALUES
+-- File permissions
+('file:create', 'file', 'create', 'Can upload files'),
+('file:read', 'file', 'read', 'Can view files'),
+('file:update', 'file', 'update', 'Can update file metadata'),
+('file:delete', 'file', 'delete', 'Can delete own files'),
+('file:read:all', 'file', 'read:all', 'Can view all files'),
+('file:delete:all', 'file', 'delete:all', 'Can delete any file'),
+
+-- User permissions
+('user:read', 'user', 'read', 'Can view own profile'),
+('user:update', 'user', 'update', 'Can update own profile'),
+('user:read:all', 'user', 'read:all', 'Can view all users'),
+('user:update:all', 'user', 'update:all', 'Can update any user'),
+('user:delete', 'user', 'delete', 'Can delete users'),
+
+-- Role permissions
+('role:create', 'role', 'create', 'Can create roles'),
+('role:read', 'role', 'read', 'Can view roles'),
+('role:update', 'role', 'update', 'Can update roles'),
+('role:delete', 'role', 'delete', 'Can delete roles'),
+('role:assign', 'role', 'assign', 'Can assign roles to users'),
+
+-- PDF operation permissions
+('pdf:merge', 'pdf', 'merge', 'Can merge PDFs'),
+('pdf:split', 'pdf', 'split', 'Can split PDFs'),
+('pdf:compress', 'pdf', 'compress', 'Can compress PDFs'),
+
+-- Storage permissions
+('storage:read', 'storage', 'read', 'Can view storage info'),
+('storage:update', 'storage', 'update', 'Can update storage limits'),
+
+-- Admin permissions
+('admin:access', 'admin', 'access', 'Can access admin panel'),
+('system:logs', 'system', 'logs', 'Can view system logs'),
+('system:config', 'system', 'config', 'Can modify system configuration');
+
+-- user role permissions i have kept this default this for all users
+INSERT INTO role_permissions (role_id, permission_id)
+SELECT 
+  (SELECT id FROM roles WHERE name = 'user'),
+  id
+FROM permissions 
+WHERE name IN (
+  'file:create', 'file:read', 'file:update', 'file:delete',
+  'user:read', 'user:update',
+  'pdf:merge', 'pdf:split',
+  'storage:read'
+);
+
+--admin role permissions
+INSERT INTO role_permissions (role_id, permission_id)
+SELECT 
+  (SELECT id FROM roles WHERE name = 'admin'),
+  id
+FROM permissions;

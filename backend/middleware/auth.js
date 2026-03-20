@@ -3,6 +3,7 @@ import authConfig from '../config/auth.js'
 import apiResponse from '../utils/apiResponse.js';
 import {getTokenFromCookie} from '../utils/cookies.js';
 import authService from '../services/authService.js';
+import roleService from '../services/roleService.js';
 
 export const authenticate=async(req,res,next)=>{
    try{
@@ -25,7 +26,13 @@ export const authenticate=async(req,res,next)=>{
     if(!user){
         return apiResponse.error(res,'User not found',401);
     }
-    req.user=user;
+
+    if(user){
+        const rolesData=await roleService.getUserRoles(user.id);
+        user.roles=rolesData.roles.map(r=>r.name);
+        user.permissions=rolesData.permissions.map(p=>p.name);
+        req.user=user;
+    }
     next();
    }
    catch(error){
