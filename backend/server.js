@@ -7,6 +7,7 @@ import notFound from './middleware/notFound.js'
 import errorHandler from './middleware/errorHandler.js';
 import authRoutes from './routes/authRoutes.js';
 import roleRoutes from './routes/roleRoutes.js';
+import oauthRoutes from './routes/oauthRoutes.js';
 dotenv.config();
 const app=express();
 const PORT=process.env.PORT;
@@ -16,6 +17,7 @@ app.use(cookieParser(process.env.COOKIE_SECRET));
 app.use('/api/health',healthRoutes);
 app.use('/api/auth',authRoutes);
 app.use('/api/roles',roleRoutes);
+app.use('/api/oauth',oauthRoutes);
 
 app.get("/",(req,res)=>{
     res.json({

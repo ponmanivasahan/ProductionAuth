@@ -12,7 +12,7 @@ class OAuthService{
         client_id:oauthConfig.google.clientId,
         redirect_uri:oauthConfig.google.callbackURL,
         response_type:'code',
-        scope:oauthConfig.google.scope.join(''),
+        scope:oauthConfig.google.scope.join(' '),
         access_type:'offline',
         prompt:'consent'
     }
@@ -54,14 +54,14 @@ class OAuthService{
 
   async getGoogleUser(accessToken){
     try{
-      const {data}=await axios.get(oauthConfig.google.uesrInfoURL,{
+      const {data}=await axios.get(oauthConfig.google.userInfoURL,{
         headers:{
           Authorization:`Bearer ${accessToken}`
         }
       });
       return{
         provider:'google',
-        provideUserId:data.sub,
+        providerUserId:data.sub,
         email:data.email,
         name:data.name,
         picture:data.picture,
@@ -83,7 +83,7 @@ class OAuthService{
           client_id:oauthConfig.hackclub.clientId,
           client_secret:oauthConfig.hackclub.clientSecret,
           redirect_uri:oauthConfig.hackclub.callbackURL,
-          grant_type:'authorized_code'
+          grant_type:'authorization_code'
         }),
         {headers:{
           'Content-Type':'application/x-www-form-urlencoded'
@@ -124,16 +124,16 @@ class OAuthService{
     try{
       await connection.beginTransaction();
       const [oauthAccounts]=await connection.execute(
-        `Select oa.*, u.* from oauth_accounts oa join users u on oa.user_id=u.id where oa.provider=? and ao.provider_user_id=?`
+        `Select oa.*, u.* from oauth_accounts oa join users u on oa.user_id=u.id where oa.provider=? and oa.provider_user_id=?`,
         [oauthUser.provider,oauthUser.providerUserId]
       );
       if(oauthAccounts.length>0){
-        await connection.execute(`Update oauth_accounts set access_token=?, refresh_token=?,updated_at=NOW() where provider=? and provider_user_id=?,[
+        await connection.execute(`Update oauth_accounts set access_token=?, refresh_token=?,updated_at=NOW() where provider=? and provider_user_id=?`,[
            oauthUser.accessToken || null,
             oauthUser.refreshToken || null,
             oauthUser.provider,
             oauthUser.providerUserId
-            ]`)
+            ])
             await connection.commit();
             const user=await authService.getuserById(oauthAccounts[0].user_id);
             return {user,isNewUser:false};
@@ -196,14 +196,14 @@ class OAuthService{
     const tokens=await this.getGoogleTokens(code);
     const oauthUser=await this.getGoogleUser(tokens.access_token);
     oauthUser.accessToken=tokens.access_token;
-    oauthUser.refreshToken=tokens.refreshToken;
+    oauthUser.refreshToken=tokens.refresh_token;
     const {user,isNewUser}=await this.findOrCreateUser(oauthUser);
     return {user,isNewUser};
   }
 
   async handleHackClubCallback(code){
     const tokens=await this.getHackClubTokens(code);
-    const oauthUser=await this.getHackClubUser(tokens.accessToken);
+    const oauthUser=await this.getHackClubUser(tokens.access_token);
 
     oauthUser.accessToken=tokens.access_token;
     oauthUser.refreshToken=tokens.refresh_token;
