@@ -1,4 +1,6 @@
 import api from './api';
+import tokenCache from './tokenCache';
+
 class AuthService{
     getOAuthBaseURL(){
         return api.defaults.baseURL?.replace(/\/$/, '') || window.location.origin;
@@ -7,8 +9,7 @@ class AuthService{
     async register(email,password){
         const response=await api.post('/auth/register',{email,password});
         if(response.data.data?.accessToken){
-            localStorage.setItem('accessToken',response.data.data.accessToken);
-            localStorage.setItem('user',JSON.stringify(response.data.data.user));
+            tokenCache.setToken(response.data.data.accessToken, response.data.data.user);
         }
         return response.data.data;
     }
@@ -16,8 +17,7 @@ class AuthService{
     async login(email,password){
         const response=await api.post('/auth/login',{email,password});
         if(response.data.data?.accessToken){
-            localStorage.setItem('accessToken',response.data.data?.accessToken);
-            localStorage.setItem('user',JSON.stringify(response.data.data.user));
+            tokenCache.setToken(response.data.data.accessToken, response.data.data.user);
         }
         return response.data.data;
     }
@@ -26,15 +26,14 @@ class AuthService{
             await api.post('/auth/logout');
         }
         finally{
-            localStorage.removeItem('accessToken');
-            localStorage.removeItem('user');
+            tokenCache.clearAllTokens();
         }
     }
     async getCurrentUser(userId){
         if(!userId){
-            const storedUser=localStorage.getItem('user');
-            if(storedUser){
-                return JSON.parse(storedUser);
+            const cachedUser=tokenCache.getUser();
+            if(cachedUser){
+                return cachedUser;
             }
         }
 

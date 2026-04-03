@@ -8,6 +8,7 @@ import errorHandler from './middleware/errorHandler.js';
 import authRoutes from './routes/authRoutes.js';
 import roleRoutes from './routes/roleRoutes.js';
 import oauthRoutes from './routes/oauthRoutes.js';
+import emailService from './utils/email.js';
 dotenv.config();
 const app=express();
 const PORT=process.env.PORT;
@@ -52,5 +53,10 @@ app.use(errorHandler);
 
 app.listen(PORT,()=>{
     console.log(`Server is running on port ${PORT}`);
+    if ((process.env.SMTP_VERIFY_ON_STARTUP || '').trim().toLowerCase() === 'true') {
+        emailService.verifyConnection().then((ok) => {
+            console.log(ok ? 'SMTP ready' : 'SMTP not ready');
+        });
+    }
 })
 export default app;

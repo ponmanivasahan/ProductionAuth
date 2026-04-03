@@ -128,7 +128,7 @@ class OAuthService{
         [oauthUser.provider,oauthUser.providerUserId]
       );
       if(oauthAccounts.length>0){
-        await connection.execute(`Update oauth_accounts set access_token=?, refresh_token=?,updated_at=NOW() where provider=? and provider_user_id=?`,[
+        await connection.execute(`Update oauth_accounts set access_token=?, refresh_token=? where provider=? and provider_user_id=?`,[
            oauthUser.accessToken || null,
             oauthUser.refreshToken || null,
             oauthUser.provider,

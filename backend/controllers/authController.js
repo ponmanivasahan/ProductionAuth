@@ -7,18 +7,6 @@ class AuthController{
         try{
             const {email,password}=req.body || {};
             const user=await authService.register(email,password);
-            let verificationEmailSent=false;
-
-            if(!user.is_email_verified){
-                try{
-                    const verificationToken=await authService.createEmailVerificationToken(user.id);
-                    await emailService.sendVerificationEmail(user.email,verificationToken);
-                    verificationEmailSent=true;
-                }
-                catch(emailError){
-                    console.error('Failed to send verification email during register:',emailError.message);
-                }
-            }
 
             //generate tokens
             const tokens=authService.generateTokens({...user,roles:['user']});
@@ -36,8 +24,7 @@ class AuthController{
             setTokenCookies(res,tokens.accessToken,tokens.refreshToken);
 
             return apiResponse.success(
-                res,{ user,accessToken:tokens.accessToken,verificationEmailSent
-                },
+                res,{ user,accessToken:tokens.accessToken },
                 'User registered successfully',
                 201
             )
@@ -54,18 +41,6 @@ class AuthController{
         try{
             const {email,password}=req.body;
             const user=await authService.login(email,password);
-            let verificationEmailSent=false;
-
-            if(!user.is_email_verified){
-                try{
-                    const verificationToken=await authService.createEmailVerificationToken(user.id);
-                    await emailService.sendVerificationEmail(user.email,verificationToken);
-                    verificationEmailSent=true;
-                }
-                catch(emailError){
-                    console.error('Failed to send verification email during login:',emailError.message);
-                }
-            }
 
             const tokens=authService.generateTokens(user);
             await authService.saveRefreshToken(user.id,tokens.refreshToken);
@@ -76,7 +51,7 @@ class AuthController{
             })
 
             setTokenCookies(res,tokens.accessToken,tokens.refreshToken);
-            return apiResponse.success(res,{user,accessToken:tokens.accessToken,verificationEmailSent},'Login Successful');
+            return apiResponse.success(res,{user,accessToken:tokens.accessToken},'Login Successful');
         }
         catch(error){
             if(error.message==='Invalid credentials'){
@@ -167,7 +142,12 @@ class AuthController{
            const resetToken=await authService.createPasswordResetToken(email);
 
            if(resetToken){
-            await emailService.sendPasswordResetEmail(email,resetToken);
+            try{
+                await emailService.sendPasswordResetEmail(email,resetToken);
+            }
+            catch(emailError){
+                console.error('Failed to send password reset email:', emailError.message);
+            }
            }
            return apiResponse.success(res,null,'If your email is registered, you will receive a password reset link');
         }
@@ -270,7 +250,12 @@ class AuthController{
             const result=await authService.resendVerificationEmail(email);
 
             if(result){
-                                await emailService.sendVerificationEmail(email,result.token);
+                try{
+                    await emailService.sendVerificationEmail(email,result.token);
+                }
+                catch(emailError){
+                    console.error('Failed to send verification email:', emailError.message);
+                }
             }
             return apiResponse.success(res,null,'If your email is registered and not verified, a verification link will be sent');
         }
@@ -287,7 +272,12 @@ class AuthController{
            const {token}=req.body;
            const result=await authService.verifyEmail(token);
 
-           await emailService.sendWelcomeEmail(result.email);
+           try{
+               await emailService.sendWelcomeEmail(result.email);
+           }
+           catch(emailError){
+               console.error('Failed to send welcome email during verification:', emailError.message);
+           }
 
            return apiResponse.success(res,{email:result.email},'Email verified successfully');
         }
@@ -317,7 +307,12 @@ class AuthController{
             }
 
             const result=await authService.verifyEmail(token);
-            await emailService.sendWelcomeEmail(result.email);
+            try{
+                await emailService.sendWelcomeEmail(result.email);
+            }
+            catch(emailError){
+                console.error('Failed to send welcome email from verification link:', emailError.message);
+            }
 
             return res.status(200).send(`
                 <!doctype html>

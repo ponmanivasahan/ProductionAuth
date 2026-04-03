@@ -5,7 +5,6 @@ import LoadingSpinner from './components/Common/LoadingSpinner.jsx';
 const AuthPage = lazy(() => import('./components/Auth/AuthPage.jsx'));
 const ForgotPassword = lazy(() => import('./components/Auth/ForgotPassword.jsx'));
 const ResetPassword = lazy(() => import('./components/Auth/ResetPassword.jsx'));
-const VerifyEmail = lazy(() => import('./components/Auth/VerifyEmail.jsx'));
 const PrivateRoute = lazy(() => import('./components/Common/PrivateRoute.jsx'));
 const Dashboard = lazy(() => import('./pages/Dashboard.jsx'));
 const App = () => {
@@ -22,7 +21,7 @@ const App = () => {
         <Route path="/login" element={<AuthPage />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/reset-password" element={<ResetPassword />} />
-        <Route path="/verify-email" element={<VerifyEmail />} />
+        <Route path="/verify-email" element={<Navigate to="/dashboard" replace />} />
         <Route path="/register" element={<Navigate to="/login" replace />} />
         <Route
           path="/dashboard"

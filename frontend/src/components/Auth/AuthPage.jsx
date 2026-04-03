@@ -52,11 +52,6 @@ const AuthPage = () => {
       setLoading(true);
       const data = await login(formData.email, formData.password);
 
-      if (data?.verificationEmailSent || data?.user?.is_email_verified === false) {
-        navigate(`/verify-email?email=${encodeURIComponent(formData.email)}`);
-        return;
-      }
-
       navigate('/dashboard');
     } catch (err) {
       setError(err.response?.data?.message || 'Login failed');

@@ -117,6 +117,7 @@ class AuthService{
             userId:user.id,
             email:user.email,
             roles:user.roles,
+            is_email_verified:true,
         },
         authConfig.jwt.accessSecret,
         {expiresIn:authConfig.jwt.accessExpiry}

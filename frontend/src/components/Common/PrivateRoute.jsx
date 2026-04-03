@@ -15,10 +15,6 @@ const PrivateRoute=({children,roles=[]})=>{
         return <Navigate to="/login" replace />
     }
 
-    if(user && user.is_email_verified === false && location.pathname !== '/verify-email') {
-        return <Navigate to={`/verify-email?email=${encodeURIComponent(user.email || '')}`} replace />
-    }
-
     if(roles.length>0 && !roles.some(role=> user?.roles?.includes(role))){
         return <Navigate to="/dashboard" replace />
     }

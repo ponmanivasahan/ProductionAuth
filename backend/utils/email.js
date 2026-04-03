@@ -11,7 +11,7 @@ class EmailService{
           return true;
         }
         catch(error){
-           console.error('SMTP connection failed:', error);
+                     console.error('SMTP connection failed:', error?.message || error);
            return false;
         }
     }
@@ -29,7 +29,7 @@ class EmailService{
              return info;
         }
         catch(error){
-             console.error('Error sending email:',error);
+             console.error('Error sending email:', error?.response || error?.message || error);
              throw new Error('Failed to send email');
         }
     }

@@ -1,26 +1,11 @@
 import React, {createContext,useState,useEffect,useContext} from 'react';
 import authService from '../services/auth';
+import tokenCache from '../services/tokenCache';
 
 const AuthContext=createContext();
 
-const decodeTokenPayload=(token)=>{
-    try{
-        const payload=token.split('.')[1];
-        if(!payload){
-            return null;
-        }
-        const normalized=payload.replace(/-/g,'+').replace(/_/g,'/');
-        const padded=normalized.padEnd(Math.ceil(normalized.length / 4) * 4, '=');
-        const json=atob(padded);
-        return JSON.parse(json);
-    }
-    catch{
-        return null;
-    }
-};
-
 const buildUserFromToken=(token)=>{
-    const payload=decodeTokenPayload(token);
+    const payload=tokenCache.decodeTokenPayload(token);
     if(!payload){
         return null;
     }
@@ -28,6 +13,7 @@ const buildUserFromToken=(token)=>{
     return {
         id:payload.userId,
         email:payload.email,
+        is_email_verified:true,
         roles:Array.isArray(payload.roles) ? payload.roles : (payload.roles ? String(payload.roles).split(',').filter(Boolean) : ['user']),
     };
 };
@@ -55,12 +41,10 @@ export const AuthProvider=({children})=>{
         const isNew=urlParams.get('new')==='true';
 
         if(token){
-            localStorage.setItem('accessToken',token);
-            window.history.replaceState({},document.title,window.location.pathname);
-            const tokenUser=buildUserFromToken(token);
-            if(tokenUser){
-                localStorage.setItem('user',JSON.stringify(tokenUser));
-                setUser(tokenUser);
+            const user=buildUserFromToken(token);
+            if(tokenCache.setToken(token, user)){
+                window.history.replaceState({},document.title,window.location.pathname);
+                setUser(user);
             }
             if(isNew){
                 setError('Welcome! Your account has been created');
@@ -72,15 +56,20 @@ export const AuthProvider=({children})=>{
     const loadUser=async()=>{
         try{
             setLoading(true);
-            const storedUser=localStorage.getItem('user');
-            if(storedUser){
-                setUser(JSON.parse(storedUser));
+            const cachedUser=tokenCache.getUser();
+            const hasValidToken=tokenCache.hasValidToken();
+            
+            if(cachedUser && hasValidToken){
+                setUser(cachedUser);
             } else {
-                const storedToken=localStorage.getItem('accessToken');
-                const tokenUser=storedToken ? buildUserFromToken(storedToken) : null;
-                if(tokenUser){
-                    setUser(tokenUser);
-                    localStorage.setItem('user',JSON.stringify(tokenUser));
+                const token=tokenCache.getToken();
+                if(token){
+                    const tokenUser=buildUserFromToken(token);
+                    if(tokenUser){
+                        setUser(tokenUser);
+                    } else {
+                        setUser(null);
+                    }
                 } else {
                     setUser(null);
                 }
@@ -89,8 +78,7 @@ export const AuthProvider=({children})=>{
         }
         catch(err){
               console.error('Failed to load user', err);
-              localStorage.removeItem('accessToken');
-              localStorage.removeItem('user');
+              tokenCache.clearAllTokens();
               setUser(null);
         }
         finally{
