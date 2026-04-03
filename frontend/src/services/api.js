@@ -25,7 +25,10 @@ api.interceptors.response.use(
     (response)=>response,
     async(error)=>{
         const originalRequest=error.config;
-        if(error.response?.status===401 && !originalRequest._retry){
+        const authEndpoints=['/auth/login','/auth/register','/auth/forgot-password','/auth/reset-password'];
+        const isAuthEndpoint=authEndpoints.some(endpoint=>originalRequest.url.includes(endpoint));
+        
+        if(error.response?.status===401 && !originalRequest._retry && !isAuthEndpoint){
             originalRequest._retry=true;
             try{
                 const response=await api.post('/auth/refresh');

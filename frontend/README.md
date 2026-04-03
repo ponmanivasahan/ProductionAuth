@@ -94,6 +94,10 @@ hasValidToken() // Check before API calls
 getStatus() // Debug cache state (time left, user email, etc.)
 ```
 
+**Token & Cookie Storage:**
+
+![Cookie Storage Architecture](./src/assets/cookiestorage.png)
+
 **Results:**
 - Tokens stored in sessionStorage (more secure than localStorage)
 - Automatic cleanup of expired tokens prevents invalid auth states
