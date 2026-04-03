@@ -1,8 +1,37 @@
 import React, {createContext,useState,useEffect,useContext} from 'react';
 import authService from '../services/auth';
-import api from '../services/api';
 
 const AuthContext=createContext();
+
+const decodeTokenPayload=(token)=>{
+    try{
+        const payload=token.split('.')[1];
+        if(!payload){
+            return null;
+        }
+        const normalized=payload.replace(/-/g,'+').replace(/_/g,'/');
+        const padded=normalized.padEnd(Math.ceil(normalized.length / 4) * 4, '=');
+        const json=atob(padded);
+        return JSON.parse(json);
+    }
+    catch{
+        return null;
+    }
+};
+
+const buildUserFromToken=(token)=>{
+    const payload=decodeTokenPayload(token);
+    if(!payload){
+        return null;
+    }
+
+    return {
+        id:payload.userId,
+        email:payload.email,
+        roles:Array.isArray(payload.roles) ? payload.roles : (payload.roles ? String(payload.roles).split(',').filter(Boolean) : ['user']),
+    };
+};
+
 export const useAuth=()=>{
         const context=useContext(AuthContext);
         if(!context){
@@ -28,11 +57,15 @@ export const AuthProvider=({children})=>{
         if(token){
             localStorage.setItem('accessToken',token);
             window.history.replaceState({},document.title,window.location.pathname);
-            loadUser();
-
+            const tokenUser=buildUserFromToken(token);
+            if(tokenUser){
+                localStorage.setItem('user',JSON.stringify(tokenUser));
+                setUser(tokenUser);
+            }
             if(isNew){
                 setError('Welcome! Your account has been created');
             }
+            loadUser();
         }
     },[]);
 
@@ -40,13 +73,18 @@ export const AuthProvider=({children})=>{
         try{
             setLoading(true);
             const storedUser=localStorage.getItem('user');
-            if(storedUser && ! user){
+            if(storedUser){
                 setUser(JSON.parse(storedUser));
+            } else {
+                const storedToken=localStorage.getItem('accessToken');
+                const tokenUser=storedToken ? buildUserFromToken(storedToken) : null;
+                if(tokenUser){
+                    setUser(tokenUser);
+                    localStorage.setItem('user',JSON.stringify(tokenUser));
+                } else {
+                    setUser(null);
+                }
             }
-
-            const userData=await authService.getCurrentUser();
-            setUser(userData);
-            localStorage.setItem('user',JSON.stringify(userData));
             setError(null);
         }
         catch(err){
@@ -62,9 +100,9 @@ export const AuthProvider=({children})=>{
     const login= async(email,password)=>{
         try{
           setError(null);
-          const response=await authService.login(email,password);
-          setUser(response.data.user);
-          return response;
+                    const data=await authService.login(email,password);
+                    setUser(data.user);
+                    return data;
         }
         catch(err){
           setError(err.response?.data?.message || 'Login failed');
@@ -75,11 +113,11 @@ export const AuthProvider=({children})=>{
     const register=async(email,password)=>{
         try{
             setError(null);
-            const response=await authService.register(email,password);
-            setUser(response.data.user);
-            return response;
+            const data=await authService.register(email,password);
+            setUser(data.user);
+            return data;
         }
-        catch{
+        catch(err){
           setError(err.response?.data?.message || 'Registration failed');
           throw err;
         }
@@ -152,7 +190,7 @@ export const AuthProvider=({children})=>{
 
 
     const value={user,loading,error,isAuthenticated: !!user,isAdmin:user?.roles?.includes('admin'),
-        login,register,logout,forgotpassword,resetPassword,verifyEmail,resendVerification,loadUser,
+        login,register,logout,forgotPassword,resetPassword,verifyEmail,resendVerification,loadUser,
     };
 
     return(

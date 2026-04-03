@@ -1,47 +1,73 @@
-import React,{useState,useEffect} from 'react';
-const Alert=({type,message,onClose,autoClose=true,duration=5000})=>{
-  const [isVisible,setIsVisible]=useState(true);
+import React, { useState, useEffect } from 'react';
+import { FiCheck, FiX, FiAlertTriangle, FiInfo } from 'react-icons/fi';
 
-  useEffect(()=>{
-    if(autoClose && onClose){
-        const timer=setTimeout(()=>{
+const Alert = ({ type, message, onClose, autoClose = true, duration = 5000 }) => {
+  const [isVisible, setIsVisible] = useState(true);
+
+  useEffect(() => {
+    if (autoClose && onClose) {
+      const timer = setTimeout(() => {
+        setIsVisible(false);
+        onClose();
+      }, duration);
+      return () => clearTimeout(timer);
+    }
+  }, [autoClose, duration, onClose]);
+
+  if (!isVisible) return null;
+
+  const typeConfig = {
+    success: {
+      bg: '#f0f9f5',
+      border: '#d1f4d6',
+      text: '#2d7a4a',
+      icon: FiCheck
+    },
+    error: {
+      bg: '#fdf5f5',
+      border: '#fde7e7',
+      text: '#d73c3c',
+      icon: FiX
+    },
+    warning: {
+      bg: '#fffbf0',
+      border: '#fde8d1',
+      text: '#d67d3b',
+      icon: FiAlertTriangle
+    },
+    info: {
+      bg: 'f7f9ff',
+      border: '#e0e8f6',
+      text: '#295aa6',
+      icon: FiInfo
+    }
+  };
+
+  const config = typeConfig[type] || typeConfig.info;
+  const IconComponent = config.icon;
+
+  return (
+    <div className="flex gap-3 rounded-lg border p-4" style={{ backgroundColor: config.bg, borderColor: config.border, color: config.text }} role="alert">
+      <div className="shrink-0 pt-0.5">
+        <IconComponent className="h-5 w-5" />
+      </div>
+      <div className="flex-1">
+        <p className="text-sm font-semibold">{message}</p>
+      </div>
+      {onClose && (
+        <button
+          onClick={() => {
             setIsVisible(false);
             onClose();
-        },duration);
-        return()=>clearTimeout(timer);
-    }
-  },[autoClose,duration,onClose]);
-
-  if(!isVisible) return null;
-    const types={
-        success: 'bg-green-100 border-green-500 text-green-700',
-        error:'bg-red-100 border-red-500 text-red-700',
-        warning:'bg-yellow-100 border-yellow-500 text-yellow-700',
-        info:'bg-blue-100 border-blue-500 text-blue-700'
-    };
-
-    const icons={
-        success:'tick',
-        error:'X',
-        warning:'warning',
-        info:'info'
-    };
-
-    return( 
-    <div className={`border-l-4 p-4 mb-4 rounded ${types[type]}`} role="alert">
-      <div className='flex items-center'>
-          <span className='text-xl mr-2'>{icons[type]}</span>
-          <span className='flex-1'>{message}</span>
-          {onClose &&(
-            <button onClick={()=>{
-                 setIsVisible(false);
-                 onClose();
-            }}
-            className='ml-4 text-gray-500 hover:text-gray-700'
-          > × </button>)}
-      </div>
+          }}
+          className="shrink-0 p-0.5 text-lg leading-none opacity-60 hover:opacity-100 transition-opacity"
+          aria-label="Close alert"
+        >
+          <FiX className="h-5 w-5" />
+        </button>
+      )}
     </div>
-    )
-}
+  );
+};
 
 export default Alert;

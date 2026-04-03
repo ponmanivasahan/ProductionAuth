@@ -1,12 +1,16 @@
 import api from './api';
 class AuthService{
+    getOAuthBaseURL(){
+        return api.defaults.baseURL?.replace(/\/$/, '') || window.location.origin;
+    }
+
     async register(email,password){
         const response=await api.post('/auth/register',{email,password});
         if(response.data.data?.accessToken){
             localStorage.setItem('accessToken',response.data.data.accessToken);
             localStorage.setItem('user',JSON.stringify(response.data.data.user));
         }
-        return response.data;
+        return response.data.data;
     }
 
     async login(email,password){
@@ -15,7 +19,7 @@ class AuthService{
             localStorage.setItem('accessToken',response.data.data?.accessToken);
             localStorage.setItem('user',JSON.stringify(response.data.data.user));
         }
-        return response.data;
+        return response.data.data;
     }
     async logout(){
         try{
@@ -26,8 +30,15 @@ class AuthService{
             localStorage.removeItem('user');
         }
     }
-    async getCurrentUser(){
-        const response=await api.get('auth/profile');
+    async getCurrentUser(userId){
+        if(!userId){
+            const storedUser=localStorage.getItem('user');
+            if(storedUser){
+                return JSON.parse(storedUser);
+            }
+        }
+
+        const response=await api.get(userId ? `/auth/profile?userId=${encodeURIComponent(userId)}` : '/auth/profile');
         return response.data.data.user;
     }
 
@@ -37,17 +48,17 @@ class AuthService{
     }
 
     async resetPassword(token,newPassword){
-        const response=await api.post('auth/reset-password',{token,newPassword});
+        const response=await api.post('/auth/reset-password',{token,newPassword});
         return response.data;
     }
 
     async verifyEmail(token){
-        const response=await api.post('auth/verify-email',{token});
+        const response=await api.post('/auth/verify-email',{token});
         return response.data;
     }
 
     async resendVerification(email){
-        const response=await api.post('auth/send-verification',{email});
+        const response=await api.post('/auth/send-verification',{email});
         return response.data;
     }
 
@@ -59,11 +70,11 @@ class AuthService{
         const response=await api.delete(`/oauth/accounts/${provider}`);
         return response.data;
     }
-    googleLogin(){
-        window.location.href=`${api.defaults.baseURL}/oauth/google`;
+    googleLogin=()=>{
+        window.location.assign(`${api.defaults.baseURL?.replace(/\/$/, '') || window.location.origin}/oauth/google`);
     }
-    hackclubLogin(){
-        window.location.href=`${api.defaults.baseURL}/oauth/hackclub`;
+    hackclubLogin=()=>{
+        window.location.assign(`${api.defaults.baseURL?.replace(/\/$/, '') || window.location.origin}/oauth/hackclub`);
     }
 }
 

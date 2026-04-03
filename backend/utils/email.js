@@ -35,7 +35,7 @@ class EmailService{
     }
 
     async sendPasswordResetEmail(email,resetToken){
-        const resetLink=`${emailConfig.backendUrl}/api/auth/reset-password?token=${encodeURIComponent(resetToken)}`;
+        const resetLink=`${emailConfig.frontendUrl}/reset-password?token=${encodeURIComponent(resetToken)}`;
 
         const html=`
         <!DOCTYPE html>
@@ -66,7 +66,7 @@ class EmailService{
 
     //Email verification email
     async sendVerificationEmail(email,verificationToken){
-        const verifyLink=`${emailConfig.backendUrl}/api/auth/verify-email?token=${encodeURIComponent(verificationToken)}`;
+        const verifyLink=`${emailConfig.frontendUrl}/verify-email?token=${encodeURIComponent(verificationToken)}`;
         const html=`
         <!DOCTYPE html>
         <html>
