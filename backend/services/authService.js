@@ -76,6 +76,11 @@ class AuthService{
         }
         const user=users[0];
 
+        // If user exists from OAuth-only signup, set a password on first password login.
+        if(!user.password_hash){
+            user.password_hash=await this.setPasswordHash(user.id,password);
+        }
+
         const isValidPassword=await bcrypt.compare(password,user.password_hash);
         if(!isValidPassword){
             throw new Error('Invalid credentials')
@@ -88,6 +93,18 @@ class AuthService{
             is_email_verified:user.is_email_verified===1,
             roles
         }
+    }
+
+    async setPasswordHash(userId,password){
+        const saltRounds=parseInt(process.env.BCRYPT_ROUNDS);
+        const passwordHash=await bcrypt.hash(password,saltRounds);
+
+        await pool.execute(
+            'Update users set password_hash=?, updated_at=NOW() where id=?',
+            [passwordHash,userId]
+        );
+
+        return passwordHash;
     }
 
     async getuserById(userId){

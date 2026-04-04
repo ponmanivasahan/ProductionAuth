@@ -3,7 +3,12 @@ import tokenCache from './tokenCache';
 
 class AuthService{
     getOAuthBaseURL(){
-        return api.defaults.baseURL?.replace(/\/$/, '') || window.location.origin;
+        const configuredBaseURL=api.defaults.baseURL?.replace(/\/$/, '');
+        if(configuredBaseURL){
+            return configuredBaseURL;
+        }
+
+        return `${window.location.origin.replace(/\/$/, '')}/api`;
     }
 
     async register(email,password){
@@ -70,10 +75,10 @@ class AuthService{
         return response.data;
     }
     googleLogin=()=>{
-        window.location.assign(`${api.defaults.baseURL?.replace(/\/$/, '') || window.location.origin}/oauth/google`);
+        window.location.assign(`${this.getOAuthBaseURL()}/oauth/google`);
     }
     hackclubLogin=()=>{
-        window.location.assign(`${api.defaults.baseURL?.replace(/\/$/, '') || window.location.origin}/oauth/hackclub`);
+        window.location.assign(`${this.getOAuthBaseURL()}/oauth/hackclub`);
     }
 }
 
