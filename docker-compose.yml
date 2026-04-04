@@ -28,7 +28,7 @@ services:
     ports:
       - "5003:5000"
     env_file:
-      - /envs/auth-hemanth.env
+      - /opt/envs/auth-hemanth.env
     depends_on:
       - mysql
     restart: unless-stopped
