@@ -50,8 +50,7 @@ const AuthPage = () => {
     try {
       setError('');
       setLoading(true);
-      const data = await login(formData.email, formData.password);
-
+      await login(formData.email, formData.password);
       navigate('/dashboard');
     } catch (err) {
       setError(err.response?.data?.message || 'Login failed');
@@ -61,44 +60,35 @@ const AuthPage = () => {
   };
 
   return (
-    <div className="relative h-screen w-full overflow-hidden bg-linear-to-br from-[#f8f6f2] via-[#f0ece5] to-[#e9e1d7] p-4 font-[Inter,system-ui,-apple-system,Segoe_UI,Roboto,Helvetica,Arial,sans-serif]">
-      <div className="pointer-events-none absolute inset-0">
-        <div className="absolute -top-16 -left-16 h-72 w-72 rounded-full bg-[#d5e2ef]/55 blur-3xl" />
-        <div className="absolute -bottom-20 -right-16 h-72 w-72 rounded-full bg-[#ebdecf]/65 blur-3xl" />
-        <div className="absolute inset-0 opacity-[0.07] [background:radial-gradient(#1e2f3f_0.6px,transparent_0.6px)] bg-size-[16px_16px]" />
-      </div>
-
-      <div className="relative z-10 flex h-full w-full items-center justify-center">
-        <div className="w-full max-w-md auth-enter">
-        {/* Card */}
-        <div className="rounded-[20px] bg-transparent shadow-none backdrop-blur-0">
-          {/* Header Section */}
-          <div className="border-b border-[#e8ddfa] px-7 pt-7 pb-5">
-            <div className="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-2xl border border-[#ded4f1] bg-[#fbf8ff] text-[#7c5ce6] shadow-[0_10px_20px_rgba(124,92,230,0.08)]">
-              <FiLock className="h-5 w-5" />
+    <div className="auth-screen font-[Inter,system-ui,-apple-system,Segoe_UI,Roboto,Helvetica,Arial,sans-serif]">
+      <div className="auth-shell auth-enter">
+        <div className="auth-panel">
+          <div className="border-b border-[#ebe2d7] px-7 py-6">
+            <div className="flex items-start gap-4">
+              <div className="mt-0.5 inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-[#ded4f1] bg-[#fbf8ff] text-[#7c5ce6] shadow-[0_10px_20px_rgba(124,92,230,0.08)]">
+                <FiLock className="h-5 w-5" />
+              </div>
+              <div className="min-w-0">
+                <h1 className="text-[1.95rem] font-semibold leading-tight tracking-[-0.03em] text-[#0e1319]">Log in to your account</h1>
+                <p className="mt-2 text-[0.96rem] leading-6 text-[#676d71]">Welcome back! Please enter your details.</p>
+              </div>
             </div>
-            <h1 className="text-[2.05rem] font-semibold leading-tight tracking-[-0.03em] text-[#0e1319]">Log in to your account</h1>
-            <p className="mt-2 text-[0.96rem] leading-6 text-[#676d71]">Welcome back! Please enter your details.</p>
           </div>
 
-          {/* Content Section */}
-          <div className="px-7 py-5">
-            {/* Alert */}
+          <div className="px-7 py-6">
             {error && (
               <div className="mb-4 animate-in fade-in slide-in-from-top-2">
                 <Alert type="error" message={error} onClose={() => setError('')} />
               </div>
             )}
 
-            {/* Form */}
             <form className="space-y-5" onSubmit={handleSubmit}>
-              {/* Email Field */}
               <div className="field-group">
                 <label htmlFor="auth-email" className="auth-label mb-2 block text-sm font-semibold tracking-[0.01em] text-[#1f2328]">
                   Email
                 </label>
                 <div className="input-shell group">
-                  <span className="input-icon group-focus-within:text-[#7c5ce6] group-focus-within:bg-[#f4f0ff]" aria-hidden="true">
+                  <span className="input-icon" aria-hidden="true">
                     <FiMail />
                   </span>
                   <input
@@ -114,13 +104,12 @@ const AuthPage = () => {
                 </div>
               </div>
 
-              {/* Password Field */}
               <div className="field-group">
                 <label htmlFor="auth-password" className="auth-label mb-2 block text-sm font-semibold tracking-[0.01em] text-[#1f2328]">
                   Password
                 </label>
                 <div className="input-shell group">
-                  <span className="input-icon group-focus-within:text-[#7c5ce6] group-focus-within:bg-[#f4f0ff]" aria-hidden="true">
+                  <span className="input-icon" aria-hidden="true">
                     <FiLock />
                   </span>
                   <input
@@ -136,26 +125,21 @@ const AuthPage = () => {
                 </div>
               </div>
 
-              {/* Remember & Forgot */}
-              <div className="flex items-center justify-between pt-0.5">
+              <div className="flex items-center justify-between gap-4 pt-0.5">
                 <label className="auth-check flex items-center gap-2 cursor-pointer group">
                   <input
                     type="checkbox"
                     checked={rememberMe}
                     onChange={(e) => setRememberMe(e.target.checked)}
-                    className="h-4 w-4 cursor-pointer rounded border-[#c8c1b4] text-[#7c5ce6] focus:ring-2 focus:ring-[#7c5ce6] focus:ring-offset-1"
+                    className="h-4 w-4 cursor-pointer rounded border border-[#c8c1b4] bg-transparent appearance-none focus:outline-none focus:ring-0 focus:ring-offset-0 checked:border-[#7c5ce6] checked:bg-[#7c5ce6]"
                   />
                   <span className="text-sm text-[#666b70] transition-colors group-hover:text-[#2b3137]">Remember me</span>
                 </label>
-                <Link
-                  to="/forgot-password"
-                  className="link-underline text-sm font-semibold text-[#7c5ce6] transition-colors hover:text-[#0f0f0f]"
-                >
-                  Forgot?
+                <Link to="/forgot-password" className="link-underline text-sm font-semibold text-[#7c5ce6] transition-colors hover:text-[#0f0f0f]">
+                  Forgot password?
                 </Link>
               </div>
 
-              {/* Sign In Button */}
               <button
                 type="submit"
                 disabled={loading}
@@ -165,32 +149,22 @@ const AuthPage = () => {
                 {!loading && <FiArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1.5 group-active:translate-x-0.5" />}
               </button>
 
-              {/* Divider */}
               <div className="relative my-5">
                 <div className="absolute inset-0 flex items-center">
-                  <div className="w-full border-t border-[#e8dfd2]"></div>
+                  <div className="w-full border-t border-[#e8dfd2]" />
                 </div>
                 <div className="relative flex justify-center">
                   <span className="bg-white/90 px-3 text-xs font-medium tracking-wide text-[#8e8f90]">Or</span>
                 </div>
               </div>
 
-              {/* OAuth Buttons */}
               <div className="space-y-2.5">
-                <button
-                  type="button"
-                  onClick={authService.googleLogin}
-                  className="btn-secondary oauth-btn group w-full"
-                >
+                <button type="button" onClick={authService.googleLogin} className="btn-secondary oauth-btn group w-full">
                   <GoogleIcon />
                   <span className="text-sm font-semibold">Sign in with Google</span>
                 </button>
 
-                <button
-                  type="button"
-                  onClick={authService.hackclubLogin}
-                  className="btn-secondary oauth-btn group w-full"
-                >
+                <button type="button" onClick={authService.hackclubLogin} className="btn-secondary oauth-btn group w-full">
                   <SiHackclub className="text-lg text-[#ec3750]" />
                   <span className="text-sm font-semibold">Continue with HackClub</span>
                 </button>
@@ -198,7 +172,6 @@ const AuthPage = () => {
             </form>
           </div>
         </div>
-      </div>
       </div>
     </div>
   );

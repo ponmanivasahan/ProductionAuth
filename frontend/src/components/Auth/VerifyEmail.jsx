@@ -64,7 +64,7 @@ const VerifyEmail = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-[#faf7fc] via-[#f6f0fb] to-[#efe7f9] p-4 sm:p-6 lg:p-8">
+      <div className="auth-screen p-4 sm:p-6 lg:p-8">
         <LoadingSpinner message="Verifying your email..." />
       </div>
     );
@@ -72,16 +72,11 @@ const VerifyEmail = () => {
 
   if (success) {
     return (
-      <div className="relative min-h-screen overflow-hidden bg-linear-to-br from-[#faf7fc] via-[#f6f0fb] to-[#efe7f9] p-4 sm:p-6 lg:p-8">
-        <div className="pointer-events-none absolute inset-0">
-          <div className="absolute -top-20 left-1/4 h-72 w-72 rounded-full bg-[#d8cbff]/50 blur-3xl" />
-          <div className="absolute -bottom-24 right-0 h-80 w-80 rounded-full bg-[#eadcff]/55 blur-3xl" />
-        </div>
-
-        <div className="relative z-10 mx-auto flex min-h-[calc(100vh-2rem)] max-w-2xl items-center justify-center">
-          <div className="glass-card w-full auth-enter bg-transparent shadow-none backdrop-blur-0" style={{ maxWidth: '460px' }}>
+      <div className="auth-screen p-4 sm:p-6 lg:p-8">
+        <div className="auth-shell" style={{ maxWidth: '460px' }}>
+          <div className="auth-panel auth-enter">
             <div className="flex flex-col items-center px-8 pt-8 pb-8 text-center">
-              <div className="mb-6 inline-flex h-14 w-14 items-center justify-center rounded-2xl border border-[#d6eedb] bg-[#f3fbf5] text-[#2d7a4a] shadow-[0_10px_20px_rgba(45,122,74,0.08)]">
+              <div className="mb-6 inline-flex h-14 w-14 items-center justify-center rounded-2xl border border-[#e3dbcf] bg-transparent text-[#2d7a4a]">
                 <FiCheckCircle className="h-6 w-6" />
               </div>
 
@@ -102,16 +97,11 @@ const VerifyEmail = () => {
 
   if (error) {
     return (
-      <div className="relative min-h-screen overflow-hidden bg-linear-to-br from-[#faf7fc] via-[#f6f0fb] to-[#efe7f9] p-4 sm:p-6 lg:p-8">
-        <div className="pointer-events-none absolute inset-0">
-          <div className="absolute -top-20 left-1/4 h-72 w-72 rounded-full bg-[#d8cbff]/50 blur-3xl" />
-          <div className="absolute -bottom-24 right-0 h-80 w-80 rounded-full bg-[#eadcff]/55 blur-3xl" />
-        </div>
-
-        <div className="relative z-10 mx-auto flex min-h-[calc(100vh-2rem)] max-w-2xl items-center justify-center">
-          <div className="glass-card w-full auth-enter bg-transparent shadow-none backdrop-blur-0" style={{ maxWidth: '460px' }}>
+      <div className="auth-screen p-4 sm:p-6 lg:p-8">
+        <div className="auth-shell" style={{ maxWidth: '460px' }}>
+          <div className="auth-panel auth-enter">
             <div className="flex flex-col items-center px-8 pt-8 pb-8 text-center">
-              <div className="mb-6 inline-flex h-14 w-14 items-center justify-center rounded-2xl border border-[#f0d8dc] bg-[#fff7f8] text-[#d73c3c] shadow-[0_10px_20px_rgba(215,60,60,0.08)]">
+              <div className="mb-6 inline-flex h-14 w-14 items-center justify-center rounded-2xl border border-[#e3dbcf] bg-transparent text-[#d73c3c]">
                 <FiAlertCircle className="h-6 w-6" />
               </div>
 
@@ -136,16 +126,11 @@ const VerifyEmail = () => {
   }
 
   return (
-    <div className="relative min-h-screen overflow-hidden bg-linear-to-br from-[#faf7fc] via-[#f6f0fb] to-[#efe7f9] p-4 sm:p-6 lg:p-8">
-      <div className="pointer-events-none absolute inset-0">
-        <div className="absolute -top-20 left-1/4 h-72 w-72 rounded-full bg-[#d8cbff]/50 blur-3xl" />
-        <div className="absolute -bottom-24 right-0 h-80 w-80 rounded-full bg-[#eadcff]/55 blur-3xl" />
-      </div>
-
-      <div className="relative z-10 mx-auto flex min-h-[calc(100vh-2rem)] max-w-2xl items-center justify-center">
-        <div className="glass-card w-full auth-enter bg-transparent shadow-none backdrop-blur-0" style={{ maxWidth: '460px' }}>
+    <div className="auth-screen p-4 sm:p-6 lg:p-8">
+      <div className="auth-shell" style={{ maxWidth: '460px' }}>
+        <div className="auth-panel auth-enter">
           <div className="flex flex-col items-center px-8 pt-8 pb-8 text-center">
-            <div className="mb-6 inline-flex h-14 w-14 items-center justify-center rounded-2xl border border-[#ded4f1] bg-[#fbf8ff] text-[#7c5ce6] shadow-[0_10px_20px_rgba(124,92,230,0.08)]">
+            <div className="mb-6 inline-flex h-14 w-14 items-center justify-center rounded-2xl border border-[#e3dbcf] bg-transparent text-[#7c5ce6]">
               <FiMail className="h-6 w-6" />
             </div>
 

@@ -1,0 +1,67 @@
+version: "3.9"
+
+services:
+  # Frontend Service
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        VITE_API_URL: ${VITE_API_URL}
+        VITE_GOOGLE_CLIENT_ID: ${VITE_GOOGLE_CLIENT_ID}
+        VITE_HACKCLUB_CLIENT_ID: ${VITE_HACKCLUB_CLIENT_ID}
+    container_name: AUTH-Frontend
+    ports:
+      - "4003:4000"
+    depends_on:
+      - backend
+    restart: unless-stopped
+    networks:
+      - auth-hemanth
+
+  # Backend Service
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: AUTH-Backend
+    ports:
+      - "5003:5000"
+    env_file:
+      - /opt/envs/auth-hemanth.env
+    depends_on:
+      - mysql
+    restart: unless-stopped
+    networks:
+      - auth-hemanth
+
+  mysql:
+    image: mysql:8.4
+    container_name: AUTH-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
+      MYSQL_DATABASE: ${DB_NAME}
+      MYSQL_USER: ${DB_USER}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+    command:
+      --bind-address=0.0.0.0
+    ports:
+      - "3307:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - auth-hemanth
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+
+volumes:
+  mysql_data:
+
+networks:
+  auth-hemanth:
+    external: true

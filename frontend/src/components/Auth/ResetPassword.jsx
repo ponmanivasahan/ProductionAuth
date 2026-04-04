@@ -64,16 +64,11 @@ const ResetPassword = () => {
 
   if (!token) {
     return (
-      <div className="relative min-h-screen overflow-hidden bg-linear-to-br from-[#faf7fc] via-[#f6f0fb] to-[#efe7f9] p-4 sm:p-6 lg:p-8">
-        <div className="pointer-events-none absolute inset-0">
-          <div className="absolute -top-20 left-1/4 h-72 w-72 rounded-full bg-[#d8cbff]/50 blur-3xl" />
-          <div className="absolute -bottom-24 right-0 h-80 w-80 rounded-full bg-[#eadcff]/55 blur-3xl" />
-        </div>
-
-        <div className="relative z-10 mx-auto flex min-h-[calc(100vh-2rem)] max-w-2xl items-center justify-center">
-          <div className="glass-card w-full max-w-md auth-enter bg-white/90 backdrop-blur-xl rounded-[20px] border border-[#e8deef] shadow-[0_24px_70px_rgba(91,59,154,0.12)]">
+      <div className="auth-screen font-[Inter,system-ui,-apple-system,Segoe_UI,Roboto,Helvetica,Arial,sans-serif]">
+        <div className="auth-shell auth-enter">
+          <div className="auth-panel">
             <div className="flex flex-col items-center px-8 pt-8 pb-8 text-center">
-              <div className="mb-6 inline-flex h-14 w-14 items-center justify-center rounded-2xl border border-[#f0d8dc] bg-[#fff7f8] text-[#d73c3c] shadow-[0_10px_20px_rgba(215,60,60,0.08)]">
+              <div className="mb-6 inline-flex h-14 w-14 items-center justify-center rounded-2xl border border-[#e3dbcf] bg-transparent text-[#d73c3c]">
                 <FiCheckCircle className="h-6 w-6 rotate-180" />
               </div>
 
@@ -98,16 +93,11 @@ const ResetPassword = () => {
   }
 
   return (
-    <div className="relative min-h-screen overflow-hidden bg-linear-to-br from-[#faf7fc] via-[#f6f0fb] to-[#efe7f9] p-4 sm:p-6 lg:p-8">
-      <div className="pointer-events-none absolute inset-0">
-        <div className="absolute -top-20 left-1/4 h-72 w-72 rounded-full bg-[#d8cbff]/50 blur-3xl" />
-        <div className="absolute -bottom-24 right-0 h-80 w-80 rounded-full bg-[#eadcff]/55 blur-3xl" />
-      </div>
-
-      <div className="relative z-10 mx-auto flex min-h-[calc(100vh-2rem)] max-w-2xl items-center justify-center">
-        <div className="glass-card w-full max-w-md auth-enter bg-white/90 backdrop-blur-xl rounded-[20px] border border-[#e8deef] shadow-[0_24px_70px_rgba(91,59,154,0.12)]">
+    <div className="auth-screen font-[Inter,system-ui,-apple-system,Segoe_UI,Roboto,Helvetica,Arial,sans-serif]">
+      <div className="auth-shell auth-enter">
+        <div className="auth-panel">
           <div className="flex flex-col items-center px-8 pt-8 pb-2 text-center">
-            <div className="mb-6 inline-flex h-14 w-14 items-center justify-center rounded-2xl border border-[#ded4f1] bg-[#fbf8ff] text-[#7c5ce6] shadow-[0_10px_20px_rgba(124,92,230,0.08)]">
+            <div className="mb-6 inline-flex h-14 w-14 items-center justify-center rounded-2xl border border-[#e3dbcf] bg-transparent text-[#7c5ce6]">
               <FiLock className="h-6 w-6" />
             </div>
 
@@ -131,8 +121,8 @@ const ResetPassword = () => {
               <label htmlFor="password" className="auth-label mb-2 block text-sm font-semibold tracking-[0.01em] text-[#1f2328]">
                 New Password
               </label>
-              <div className="input-shell">
-                <span className="input-icon group-focus-within:text-[#7c5ce6] group-focus-within:bg-[#f4f0ff]" aria-hidden="true">
+              <div className="input-shell group">
+                <span className="input-icon" aria-hidden="true">
                   <FiLock />
                 </span>
                 <input
@@ -154,8 +144,8 @@ const ResetPassword = () => {
               <label htmlFor="confirm-password" className="auth-label mb-2 block text-sm font-semibold tracking-[0.01em] text-[#1f2328]">
                 Confirm Password
               </label>
-              <div className="input-shell">
-                <span className="input-icon group-focus-within:text-[#7c5ce6] group-focus-within:bg-[#f4f0ff]" aria-hidden="true">
+              <div className="input-shell group">
+                <span className="input-icon" aria-hidden="true">
                   <FiLock />
                 </span>
                 <input
