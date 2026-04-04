@@ -63,7 +63,16 @@ class AuthService{
             group by u.id`, [email]
         )
         if(users.length===0){
-            throw new Error('Invalid credentials');
+            // Auto-create user on first email/password login.
+            const createdUser=await this.register(email,password);
+            const fullUser=await this.getuserById(createdUser.id);
+
+            return {
+                id:fullUser.id,
+                email:fullUser.email,
+                is_email_verified:fullUser.is_email_verified,
+                roles:fullUser.roles && fullUser.roles.length>0 ? fullUser.roles : ['user']
+            };
         }
         const user=users[0];
 

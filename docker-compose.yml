@@ -36,7 +36,7 @@ services:
       - auth-hemanth
 
   mysql:
-    image: mysql:8.4
+    image: mysql:8.0
     container_name: AUTH-mysql
     restart: unless-stopped
     environment:
@@ -48,7 +48,7 @@ services:
       - /opt/envs/auth-hemanth.env
     command:
       --bind-address=0.0.0.0
-      --mysql-native-password=ON
+      --default-authentication-plugin=mysql_native_password
     ports:
       - "3307:3306"
     volumes:
