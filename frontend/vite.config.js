@@ -9,7 +9,8 @@ export default defineConfig({
     port:4000,
     proxy:{
       '/api':{
-        target:'https://productionauth-backend.mspkapps.in',
+        // target:'https://productionauth-backend.mspkapps.in',
+        target:'http://localhost:5173',
         changeOrigin:true
       }
     }
