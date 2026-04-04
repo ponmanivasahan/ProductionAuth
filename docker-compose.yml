@@ -48,6 +48,7 @@ services:
       - /opt/envs/auth-hemanth.env
     command:
       --bind-address=0.0.0.0
+      --mysql-native-password=ON
     ports:
       - "3307:3306"
     volumes:
