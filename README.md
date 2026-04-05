@@ -1,13 +1,14 @@
 # Auth Frontend - React + Vite
 
 A premium SaaS-style authentication interface built with React 19, Vite, and Tailwind CSS.
-
+## Note: HackClub login is currently commented out in the frontend UI while the flow is paused, but the backend integration/config is still documented.
 ## Features
 
 - **Responsive Login & Password Recovery** - Transparent card design with smooth interactions
 - **Token-based Auth** - JWT access/refresh token flow with localStorage persistence
 - **Protected Routes** - Role-based access control with PrivateRoute guards
 - **OAuth Integration** - Google and HackClub authentication support
+  - HackClub login is currently commented out in the frontend UI while the flow is paused, but the backend integration/config is still documented.
 - **Email Reset Links** - Password reset and email verification flows
 - **Premium UI** - Monochrome palette, glass morphism, and smooth animations
 
