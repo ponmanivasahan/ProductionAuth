@@ -2,43 +2,16 @@ import dotenv from 'dotenv'
 dotenv.config();
 
 const normalize = (value) => (value || '').trim();
-const parseBoolean = (value) => {
-    const normalized = normalize(value).toLowerCase();
-    if (normalized === 'true') return true;
-    if (normalized === 'false') return false;
-    return undefined;
-};
-
-const smtpProvider = normalize(process.env.SMTP_PROVIDER).toLowerCase();
-const defaultSmtpByProvider = {
-    brevo: {
-        host: 'smtp-relay.brevo.com',
-        port: 587,
-        requireTLS: true
-    }
-};
-
-const providerDefaults = defaultSmtpByProvider[smtpProvider] || {};
-const smtpHost = normalize(process.env.SMTP_HOST || providerDefaults.host);
-const smtpPort = parseInt(normalize(process.env.SMTP_PORT || String(providerDefaults.port || 587)), 10);
-const explicitSecure = parseBoolean(process.env.SMTP_SECURE);
-
-// If SMTP_SECURE is omitted, infer from common SMTP ports.
-const smtpSecure = explicitSecure ?? (smtpPort === 465);
-const smtpRequireTLS = parseBoolean(process.env.SMTP_REQUIRE_TLS) ?? Boolean(providerDefaults.requireTLS && smtpPort === 587);
+const normalizeSmtpPassword = (value) => normalize(value).replace(/\s+/g, '');
 
 export default{
     smtp:{
-        host:smtpHost,
-        port:smtpPort,
-        secure:smtpSecure,
-        requireTLS:smtpRequireTLS,
+        host:normalize(process.env.SMTP_HOST),
+        port:parseInt(normalize(process.env.SMTP_PORT || '587'), 10),
+        secure:normalize(process.env.SMTP_SECURE || 'false')==='true',
         auth:{
             user:normalize(process.env.SMTP_USER),
-            pass:normalize(process.env.SMTP_PASS)
-        },
-        tls:{
-            minVersion:'TLSv1.2'
+            pass:normalizeSmtpPassword(process.env.SMTP_PASS)
         }
     },
     from:normalize(process.env.SMTP_FROM || process.env.SMTP_USER),

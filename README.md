@@ -141,12 +141,15 @@ JWT_REFRESH_EXPIRY=7d
 # Cookies
 COOKIE_SECRET=your_cookie_secret
 
-# Email (SMTP)
-SMTP_HOST=smtp.gmail.com
+# Email (SMTP) - Brevo Example
+SMTP_PROVIDER=brevo
+SMTP_HOST=smtp-relay.brevo.com
 SMTP_PORT=587
 SMTP_SECURE=false
-SMTP_USER=your-email@gmail.com
-SMTP_PASS=your-app-password
+SMTP_REQUIRE_TLS=true
+SMTP_USER=your_brevo_smtp_login@smtp-brevo.com
+SMTP_PASS=your_brevo_smtp_key
+SMTP_FROM=verified-sender@yourdomain.com
 SMTP_VERIFY_ON_STARTUP=false
 
 # Frontend URL
@@ -172,9 +175,11 @@ OAUTH_FAILURE_REDIRECT=http://localhost:5173/login?error=oauth_failed
 ```
 
 **Important Notes:**
-- Gmail SMTP requires an app password (not regular Gmail password)
-- All secrets should be strong and unique
-- Never commit `.env` to version control
+- **Brevo SMTP:** Use port 587 with `SMTP_SECURE=false` and `SMTP_REQUIRE_TLS=true` (STARTTLS mode). If using port 465, set `SMTP_SECURE=true` and `SMTP_REQUIRE_TLS=false` instead.
+- **SMTP_FROM** must be a verified sender email in Brevo.
+- For Gmail: Use an app password (not regular Gmail password) with port 587, secure=false.
+- All secrets should be strong and unique.
+- Never commit `.env` to version control.
 - Token expiry uses formats like `15m`, `1h`, `7d`, etc.
 
 ### Frontend Environment (`.env`)
@@ -199,7 +204,7 @@ const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
 
 ---
 
-![Database Diagram](./src/assets/DBDIAGRAM.png)
+![Database Diagram](./frontend/src/assets/DBDIAGRAM.png)
 
 The backend uses MySQL with the following key tables:
 - **users** - User accounts with email verification status
