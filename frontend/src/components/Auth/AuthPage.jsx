@@ -164,10 +164,12 @@ const AuthPage = () => {
                   <span className="text-sm font-semibold">Sign in with Google</span>
                 </button>
 
+                {/*
                 <button type="button" onClick={authService.hackclubLogin} className="btn-secondary oauth-btn group w-full">
                   <SiHackclub className="text-lg text-[#ec3750]" />
                   <span className="text-sm font-semibold">Continue with HackClub</span>
                 </button>
+                */}
               </div>
             </form>
           </div>
