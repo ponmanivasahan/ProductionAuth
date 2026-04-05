@@ -2,13 +2,13 @@ import api from './api';
 import tokenCache from './tokenCache';
 
 class AuthService{
-    getOAuthBaseURL(){
-        const configuredBaseURL=api.defaults.baseURL?.replace(/\/$/, '');
-        if(configuredBaseURL){
-            return configuredBaseURL;
-        }
+    getApiBaseURL(){
+        const configuredBaseURL=api.defaults.baseURL || import.meta.env.VITE_API_URL || '';
+        return configuredBaseURL.replace(/\/$/, '').replace(/\/api$/, '') + '/api';
+    }
 
-        return `${window.location.origin.replace(/\/$/, '')}/api`;
+    getOAuthBaseURL(){
+        return this.getApiBaseURL();
     }
 
     async register(email,password){

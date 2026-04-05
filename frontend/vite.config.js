@@ -7,9 +7,11 @@ export default defineConfig({
   plugins: [react(), tailwindcss()],
   server:{
     port:4000,
+    // port:5173,
     proxy:{
       '/api':{
         target:'https://productionauth-backend.mspkapps.in',
+        // target:'http://localhost:5173',
         changeOrigin:true
       }
     }
